@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>錦泰・靜謐時光｜多功能專注工作台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;700&family=Merriweather:wght@400;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom CSS for the analog clock */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* Default Light Mode Background */
+            background-color: #f1f1f1; 
+            background-image: url('bg.jpg'); 
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            padding: 1rem;
+            transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.3s ease;
+        }
+        
+        /* --- NEW: Dark Mode Styles --- */
+        body.dark-mode {
+            /* Dark Mode Background Strategy (Fallback Mechanism):
+               1. 最上層: 'bg_dark.jpg'. 如果圖片存在，它會覆蓋在最上面。
+               2. 底層: 原本的 fallback (深色漸層遮罩 + bg.jpg)。
+               
+               如果瀏覽器找不到 bg_dark.jpg (404)，它會將第一層視為透明，
+               自然顯示出底下的漸層與 bg.jpg。
+            */
+            background-image: url('bg_dark.jpg'), linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url('bg.jpg');
+            
+            /* 確保所有圖層都覆蓋整個畫面 */
+            background-size: cover, cover, cover;
+            background-repeat: no-repeat, no-repeat, no-repeat;
+            background-position: center, center, center;
+            
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .quote-display {
+            color: #f1f5f9;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        body.dark-mode .quote-source {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .clock-face {
+            background-color: #1e293b; /* Dark Blue-Gray */
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark-mode .number {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .hour-mark, 
+        body.dark-mode .hour-mark-line {
+            background-color: #cbd5e1;
+        }
+        
+        body.dark-mode .minute-mark,
+        body.dark-mode .minute-mark-line {
+            background-color: #64748b;
+        }
+
+        body.dark-mode .hour-hand,
+        body.dark-mode .minute-hand {
+            background-color: #f8fafc; /* Light hands */
+        }
+
+        body.dark-mode .digital-display {
+            background-color: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .digital-time {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .digital-date {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .text-input-container textarea {
+            background-color: rgba(30, 41, 59, 0.7);
+            color: #f1f5f9;
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3), 4px 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        body.dark-mode .timer-container {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+        }
+        
+        body.dark-mode .timer-display {
+            color: #f1f5f9;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        body.dark-mode .timer-container h2 {
+            color: #cbd5e0;
+        }
+
+        body.dark-mode .timer-input-modern {
+            color: #f1f5f9;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
+
+        body.dark-mode .timer-input-modern::placeholder {
+            color: #64748b;
+        }
+
+        body.dark-mode .white-noise-btn,
+        body.dark-mode .settings-button, 
+        body.dark-mode .fullscreen-button, 
+        body.dark-mode .alarm-button {
+            color: #60a5fa; /* Lighter blue for dark mode */
+        }
+
+        /* --- End Dark Mode Styles --- */
+
+        
+        /* Visual Alert Animation */
+        @keyframes visual-alert-pulse {
+            0% { box-shadow: inset 0 0 0 0 rgba(229, 62, 62, 0); }
+            50% { box-shadow: inset 0 0 100px 20px rgba(229, 62, 62, 0.3); }
+            100% { box-shadow: inset 0 0 0 0 rgba(229, 62, 62, 0); }
+        }
+
+        body.visual-alert {
+            animation: visual-alert-pulse 2s ease-in-out 5; 
+        }
+
+        /* --- Butterfly Animation Styles --- */
+        .butterfly {
+            position: fixed;
+            top: -100px; /* Start off-screen */
+            pointer-events: none; /* Don't interfere with clicks */
+            z-index: 10; /* Above background, below UI controls */
+            will-change: transform;
+        }
+
+        @keyframes butterfly-flap {
+            0%, 100% { transform: scaleX(1) rotateY(0deg); }
+            50% { transform: scaleX(0.8) rotateY(60deg); }
+        }
+
+        .butterfly-inner {
+            font-size: 24px; /* Base size */
+            display: block;
+            animation: butterfly-flap 0.4s infinite ease-in-out alternate;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
+        }
+
+        .quote-container {
+            min-height: 100px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            max-width: 800px;
+            width: 100%;
+            transition: opacity 0.4s ease, min-height 0.4s ease, margin 0.4s ease, visibility 0.4s ease, height 0.4s ease;
+            opacity: 1;
+            visibility: visible;
+            height: auto; 
+        }
+        
+        /* Wrapper for Source and Icon */
+        .source-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; 
+            width: 100%;
+            max-width: 800px;
+            padding-right: 1rem; 
+            gap: 8px; 
+            margin-top: 0.5rem;
+        }
+
+        .quote-source {
+            font-size: clamp(0.8rem, 2.5vw, 1.1rem); 
+            color: #666;
+            text-align: right; 
+            margin-top: 0; 
+            padding-right: 0; 
+        }
+
+        /* White Noise (Light Music) Button Style */
+        .white-noise-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            transition: color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+        }
+        .white-noise-btn:hover {
+            color: #4a90e2;
+            transform: scale(1.1);
+        }
+        .white-noise-btn.active {
+            color: #4a90e2;
+        }
+
+        #clockMode {
+            transition: transform 0.4s ease-in-out;
+            width: 100%; 
+        }
+
+        body.quote-hidden .quote-container {
+            opacity: 0;
+            visibility: hidden;
+            min-height: 0;
+            height: 0; 
+            margin-bottom: 0;
+            overflow: hidden;
+        }
+
+        body.quote-hidden #clockMode {
+            transform: scale(1.2); 
+            margin-top: 50px; 
+            margin-bottom: 20px; 
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            width: 95%; 
+            max-width: 1200px; 
+            transition: all 0.4s ease;
+        }
+
+        .text-input-container {
+            display: none; 
+            width: 100%;
+        }
+        .text-input-container textarea {
+            width: 100%;
+            height: 450px; 
+            border: 0px solid #ddd;
+            display: inline-block;
+            border-radius: 20px;
+            color: #333; 
+            background-color: rgba(240, 240, 240, 0.7); 
+            box-shadow: 
+                inset 2px 2px 5px rgba(255, 255, 255, 0.5), 
+                4px 4px 8px rgba(0, 0, 0, 0.2); 
+
+            font-size: 3.0rem; 
+            font-weight: bold; 
+            text-align: center; 
+            line-height: 1.5; 
+            font-family: 'Lora', serif;
+            resize: none; 
+            padding: 10px 15px; 
+            padding-top: calc( (450px - 3.0rem * 1.5 * 5) / 2 ); 
+        }
+
+
+        /* Elegant Timer Styles */
+        .timer-container {
+            display: none; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            padding: 2.5rem;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            border-radius: 24px;
+            color: #333;
+        }
+
+        .timer-container h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #4a5568;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+        }
+
+        /* Circular Progress */
+        .timer-visual {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .timer-circle-svg {
+            transform: rotate(-90deg); 
+            width: 100%;
+            height: 100%;
+        }
+
+        .timer-circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.4);
+            stroke-width: 6;
+        }
+
+        .timer-circle-progress {
+            fill: none;
+            stroke: #4a90e2; 
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 679; 
+            stroke-dashoffset: 0; 
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .timer-text-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .timer-display {
+            font-size: 4rem;
+            font-weight: 300; 
+            color: #2d3748;
+            font-family: 'Inter', sans-serif;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .timer-status {
+            font-size: 0.8rem;
+            color: #718096;
+            letter-spacing: 2px;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* Modern Inputs */
+        .timer-inputs-modern {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .timer-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .timer-input-modern {
+            width: 70px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            font-size: 1.5rem;
+            text-align: center;
+            color: #2d3748;
+            font-family: 'Inter', sans-serif;
+            border-radius: 0;
+            padding: 5px 0;
+            transition: all 0.3s;
+        }
+
+        .timer-input-modern:focus {
+            outline: none;
+            border-bottom-color: #4a90e2;
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .timer-input-modern::placeholder {
+            color: #a0aec0;
+        }
+
+        .timer-label-small {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        .timer-separator {
+            font-size: 1.5rem;
+            color: #cbd5e0;
+            padding-bottom: 20px;
+        }
+
+        /* Modern Controls */
+        .timer-controls-modern {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .control-btn-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .btn-start { 
+            background: linear-gradient(135deg, #4a90e2, #357ABD); 
+            color: white; 
+            width: 60px; 
+            height: 60px;
+        }
+        .btn-start:hover { transform: scale(1.05); box-shadow: 0 6px 15px rgba(74, 144, 226, 0.4); }
+        .btn-start:active { transform: scale(0.95); }
+
+        .btn-pause { background: rgba(255,255,255,0.8); color: #4a5568; }
+        .btn-pause:hover { background: #fff; transform: translateY(-2px); }
+
+        .btn-reset { background: rgba(255,255,255,0.6); color: #e53e3e; }
+        .btn-reset:hover { background: #fff; color: #c53030; transform: translateY(-2px); }
+
+        /* Pomodoro Presets */
+        .timer-presets {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .preset-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: #4a5568;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(255, 255, 255, 0.8);
+            color: #4a90e2;
+            transform: translateY(-1px);
+        }
+
+
+        /* Layout Logic */
+        body.timer-active .main-content {
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between; 
+        }
+        body.timer-active #clockMode { width: 45%; }
+        body.timer-active .timer-container { display: flex; width: 45%; }
+
+        body.text-active .main-content {
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+        body.text-active .text-input-container { display: block; width: 55%; }
+        body.text-active #clockMode { width: 40%; }
+
+        body.timer-active.text-active .main-content {
+            flex-direction: row; 
+            flex-wrap: wrap; 
+            justify-content: space-between;
+        }
+        body.timer-active.text-active .text-input-container { display: block; width: 55%; }
+        body.timer-active.text-active #clockMode { width: 40%; }
+        body.timer-active.text-active .timer-container {
+            display: flex;
+            width: 100%; 
+            margin-top: 2rem;
+        }
+
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body.timer-active .main-content,
+            body.text-active .main-content,
+            body.timer-active.text-active .main-content {
+                flex-direction: column; 
+                align-items: center;
+            }
+
+            body.timer-active #clockMode,
+            body.timer-active .timer-container,
+            body.text-active .text-input-container,
+            body.text-active #clockMode,
+            body.timer-active.text-active .text-input-container,
+            body.timer-active.text-active #clockMode,
+            body.timer-active.text-active .timer-container {
+                width: 90vw; 
+                max-width: 400px;
+            }
+
+            body.timer-active .timer-container,
+            body.text-active #clockMode,
+            body.timer-active.text-active #clockMode,
+            body.timer-active.text-active .timer-container {
+                 margin-top: 2rem; 
+            }
+
+            .text-input-container textarea {
+                height: 400px; 
+                font-size: 2rem; 
+                padding-top: calc( (400px - 2rem * 1.5 * 6) / 2 ); 
+            }
+        }
+
+
+        .quote-display {
+            font-size: clamp(1.2rem, 4vw, 1.8rem); 
+            font-weight: 500;
+            color: #333;
+            text-align: center;
+            margin-bottom: 0.5rem; 
+            line-height: 1.6;
+            padding: 0 1rem;
+            font-family: 'Playfair Display', serif; 
+            opacity: 1; 
+            transition: opacity 0.8s ease-in-out; 
+        }
+
+        .quote-display.fade-out {
+            opacity: 0;
+        }
+
+        .quote-source {
+            font-size: clamp(0.8rem, 2.5vw, 1.1rem); 
+            color: #666;
+            text-align: right; 
+            width: 100%; 
+            max-width: 800px; 
+            padding-right: 1rem; 
+            margin-top: 0; 
+        }
+
+        .clock-container {
+            position: relative;
+            width: 80vw; 
+            height: 80vw; 
+            max-width: 400px; 
+            max-height: 400px; 
+            border-radius: 50%;
+            background: var(--clock-outer-color, linear-gradient(135deg, #4E342E, #3E2723)); 
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 0 0 10px rgba(0, 0, 0, 0.05); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            overflow: hidden; 
+        }
+
+        .clock-face {
+            position: relative;
+            width: 90%; 
+            height: 90%;
+            border-radius: 50%;
+            background-color: #FAF7F0; 
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05); 
+        }
+
+        .clock-face-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat;
+            opacity: var(--image-opacity, 0.3); 
+            z-index: 1; 
+        }
+
+        .number {
+            position: absolute;
+            font-size: var(--number-font-size, clamp(1rem, 4vw, 1.5rem)); 
+            font-weight: 600;
+            color: #555; 
+            z-index: 5; 
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(calc(var(--n) * 30deg)) translateY(-135px);
+            font-family: var(--number-font-family, 'Lora', serif); 
+        }
+
+        .number-text {
+            transform: rotate(calc(var(--n) * -30deg));
+        }
+
+        .mark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center center;
+            z-index: 4; 
+        }
+
+        .hour-mark {
+            width: 3px;
+            height: 15px; 
+            background-color: #888; 
+        }
+
+        .minute-mark {
+            width: 1px;
+            height: 8px; 
+            background-color: #bbb; 
+        }
+
+        .hour-mark-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform-origin: center center;
+        }
+        .hour-mark-line {
+            position: absolute;
+            width: 3px;
+            height: 15px; 
+            background-color: #888; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateY(-165px); 
+        }
+
+        .minute-mark-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform-origin: center center;
+        }
+        .minute-mark-line {
+            position: absolute;
+            width: 1px;
+            height: 8px; 
+            background-color: #bbb; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateY(-168px); 
+        }
+
+
+        /* Clock hands */
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            background-color: #333; 
+            border-radius: 5px;
+            z-index: 10; 
+        }
+
+        .hour-hand {
+            width: var(--hour-hand-width, 4px); 
+            height: 25%; 
+            background-color: #333;
+        }
+
+        .minute-hand {
+            width: var(--minute-hand-width, 3px); 
+            height: 40%;
+            background-color: #555;
+        }
+
+        .second-hand {
+            width: var(--second-hand-width, 2px); 
+            height: 45%;
+            background-color: #555; 
+            z-index: 11; 
+        }
+
+        .center-dot {
+            position: absolute;
+            width: 20px; 
+            height: 20px; 
+            background: linear-gradient(to top left, #A0522D, #8B4513); 
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 12; 
+            border: 3px solid #fff; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
+        }
+
+        /* Digital display styling */
+        .digital-display {
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            color: #333;
+            font-family: 'Lora', serif; 
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 90vw;
+            max-width: 400px;
+        }
+
+        .digital-time {
+            font-size: clamp(1.5rem, 7vw, 2.5rem); 
+            font-weight: 700;
+            color: #1a202c;
+            font-variant-numeric: tabular-nums; 
+        }
+
+        .digital-date {
+            font-size: clamp(0.9rem, 3.5vw, 1.3rem); 
+            color: #4a5568;
+        }
+
+        /* Ensure responsive positioning of numbers and marks */
+        @media (max-width: 640px) {
+            .number {
+                transform: translate(-50%, -50%) rotate(calc(var(--n) * 30deg)) translateY(-110px); 
+            }
+            .hour-mark-line {
+                transform: translate(-50%, -50%) translateY(-135px);
+            }
+            .minute-mark-line {
+                transform: translate(-50%, -50%) translateY(-138px);
+            }
+        }
+
+        /* Buttons */
+        .settings-button, .fullscreen-button, .alarm-button {
+            position: fixed;
+            bottom: 20px;
+            background: none; 
+            color: #4a90e2; 
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 30px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: none; 
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        
+        .settings-button { right: 20px; }
+        .alarm-button { right: 80px; }
+        .fullscreen-button { right: 140px; }
+
+        .settings-button:hover, .fullscreen-button:hover, .alarm-button:hover {
+            transform: scale(1.1);
+        }
+
+        /* Tooltips */
+        [data-tooltip] { position: fixed; }
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 110%; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8); 
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            pointer-events: none; 
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* Settings Modal */
+        .settings-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .settings-modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .settings-modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh; 
+            overflow-y: auto; 
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .settings-modal-overlay.active .settings-modal-content { transform: translateY(0); opacity: 1; }
+
+        .settings-modal-content h2 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .settings-modal-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .settings-modal-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 1rem;
+        }
+
+        .settings-modal-group input[type="number"],
+        .settings-modal-group input[type="color"],
+        .settings-modal-group select {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #333;
+            width: 100%;
+        }
+
+        .settings-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .settings-modal-actions button {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            border: none;
+        }
+
+        .settings-modal-actions .cancel-btn { background-color: #e0e0e0; color: #555; }
+        .settings-modal-actions .cancel-btn:hover { background-color: #d0d0d0; transform: translateY(-1px); }
+        .settings-modal-actions .apply-btn { background-color: #4a90e2; color: white; }
+        .settings-modal-actions .apply-btn:hover { background-color: #357ABD; transform: translateY(-1px); }
+        .settings-modal-actions .reset-btn { background-color: #f44336; color: white; }
+        .settings-modal-actions .reset-btn:hover { background-color: #d32f2f; transform: translateY(-1px); }
+        
+        .alarm-time-input {
+            font-size: 1.5rem !important; 
+            text-align: center;
+            padding: 0.5rem !important;
+        }
+
+        #alarmListContainer {
+            max-height: 40vh; 
+            overflow-y: auto; 
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            border: 1px solid #eee;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .alarm-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .alarm-entry label { flex-shrink: 0; color: #555; font-weight: 600; }
+        
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #4a90e2; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="quote-container">
+        <!-- Reverted: h1 is standalone again -->
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 quote-display" id="timeQuoteDisplay">
+        </h1>
+        
+        <!-- NEW: Source and Button Wrapper -->
+        <div class="source-wrapper">
+            <div class="quote-source" id="quoteSource">錦泰時間語錄</div>
+            <!-- Moved Button Here with NEW Icon -->
+            <button id="whiteNoiseBtn" class="white-noise-btn" title="開啟/關閉輕音樂">
+                <!-- Initial Icon (Music Off) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                    <line x1="2" y1="2" x2="22" y2="22"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- NEW: Main content wrapper -->
+    <main id="mainContent" class="main-content">
+        <!-- NEW: Text Input Container -->
+        <div id="textInputContainer" class="text-input-container">
+            <textarea id="mainTextInput" placeholder="請在此輸入文字..."></textarea>
+        </div>
+
+        <div id="clockMode" class="flex flex-col items-center">
+            <div class="clock-container">
+                <div class="clock-face">
+                    <div id="clockFaceImage" class="clock-face-image"></div>
+                    <div class="number" style="--n:12;"><span class="number-text">12</span></div>
+                    <div class="number" style="--n:1;"><span class="number-text">1</span></div>
+                    <div class="number" style="--n:2;"><span class="number-text">2</span></div>
+                    <div class="number" style="--n:3;"><span class="number-text">3</span></div>
+                    <div class="number" style="--n:4;"><span class="number-text">4</span></div>
+                    <div class="number" style="--n:5;"><span class="number-text">5</span></div>
+                    <div class="number" style="--n:6;"><span class="number-text">6</span></div>
+                    <div class="number" style="--n:7;"><span class="number-text">7</span></div>
+                    <div class="number" style="--n:8;"><span class="number-text">8</span></div>
+                    <div class="number" style="--n:9;"><span class="number-text">9</span></div>
+                    <div class="number" style="--n:10;"><span class="number-text">10</span></div>
+                    <div class="number" style="--n:11;"><span class="number-text">11</span></div>
+
+                    <div id="hourMarksContainer"></div>
+
+                    <div id="minuteMarksContainer"></div>
+
+                    <div class="hand hour-hand" id="hourHand"></div>
+                    <div class="hand minute-hand" id="minuteHand"></div>
+                    <div class="hand second-hand" id="secondHand"></div>
+
+                    <div class="center-dot"></div>
+                </div>
+            </div>
+
+            <div class="digital-display">
+                <div class="digital-time" id="digitalTime"></div>
+                <div class="digital-date" id="digitalDate"></div>
+            </div>
+        </div>
+
+        <!-- NEW: Elegant Timer Container -->
+        <div id="timerContainer" class="timer-container">
+            <h2>專注計時</h2>
+            
+            <!-- Circular Progress Visual -->
+            <div class="timer-visual">
+                <svg class="timer-circle-svg" viewBox="0 0 240 240">
+                    <!-- Background Ring -->
+                    <circle class="timer-circle-bg" cx="120" cy="120" r="108"></circle>
+                    <!-- Progress Ring -->
+                    <circle id="timerProgressRing" class="timer-circle-progress" cx="120" cy="120" r="108"></circle>
+                </svg>
+                <div class="timer-text-overlay">
+                    <div class="timer-display" id="timerDisplay">00:00</div>
+                    <div class="timer-status" id="timerStatus">READY</div>
+                </div>
+            </div>
+
+            <!-- NEW: Pomodoro Presets -->
+            <div class="timer-presets">
+                <button class="preset-btn" data-time="00:10">10秒</button>
+                <button class="preset-btn" data-time="00:30">30秒</button>
+                <button class="preset-btn" data-time="01:00">1分鐘</button>
+                <button class="preset-btn" data-time="05:00">5分鐘</button>
+                <button class="preset-btn" data-time="15:00">15分鐘</button>
+            </div>
+
+            <!-- Modern Inputs -->
+            <div class="timer-inputs-modern" id="timerInputSection">
+                <div class="timer-input-group">
+                    <input type="number" id="timerMinutesInput" class="timer-input-modern" min="0" max="99" placeholder="00">
+                    <span class="timer-label-small">分</span>
+                </div>
+                <div class="timer-separator">:</div>
+                <div class="timer-input-group">
+                    <input type="number" id="timerSecondsInput" class="timer-input-modern" min="0" max="59" placeholder="00">
+                    <span class="timer-label-small">秒</span>
+                </div>
+            </div>
+
+            <!-- Modern Controls -->
+            <div class="timer-controls-modern">
+                <button id="timerResetBtn" class="control-btn-icon btn-reset" title="重設">
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                </button>
+                <button id="timerStartBtn" class="control-btn-icon btn-start" title="開始">
+                    <svg id="playIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                </button>
+                <button id="timerPauseBtn" class="control-btn-icon btn-pause" title="暫停">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 全螢幕按鈕 -->
+    <button id="fullscreenBtn" class="fullscreen-button" data-tooltip="全螢幕">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+    </button> 
+
+    <button id="alarmBtn" class="alarm-button" data-tooltip="響鬧設定">🔕</button> 
+
+    <button id="settingsBtn" class="settings-button" data-tooltip="一般設定">⚙️</button>
+
+    <audio id="alarmSound" preload="auto">
+        <source src="alarm.mp3" type="audio/mpeg">
+        你的瀏覽器不支援 audio 元素。
+    </audio>
+    
+    <!-- NEW: Light Music Audio (Renamed from White Noise) -->
+    <audio id="whiteNoiseSound" loop>
+        <source src="lightmusic.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Alarm Modal -->
+    <div id="alarmModalOverlay" class="settings-modal-overlay">
+        <div class="settings-modal-content">
+            <h2>設定響鬧</h2>
+            <div id="alarmListContainer"></div>
+            <div class="settings-modal-actions">
+                <button class="reset-btn" id="clearAlarmBtn" style="margin-right: auto;">清除響鬧</button> 
+                <button class="cancel-btn" id="cancelAlarmBtn">取消</button>
+                <button class="apply-btn" id="applyAlarmBtn">設定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModalOverlay" class="settings-modal-overlay">
+        <div class="settings-modal-content">
+            <h2>設定</h2>
+            <!-- NEW: Dark Mode Toggle -->
+            <div class="settings-modal-group" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+                <label for="darkModeToggle">夜間模式:</label>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle"> 
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-modal-group" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-top: 1px solid #eee;">
+                <label for="showQuoteToggle">顯示時間語錄:</label>
+                <label class="switch">
+                    <input type="checkbox" id="showQuoteToggle"> 
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-modal-group" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-top: 1px solid #eee;">
+                <label for="showTimerToggle">顯示計時器:</label>
+                <label class="switch">
+                    <input type="checkbox" id="showTimerToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="settings-modal-group" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-top: 1px solid #eee;">
+                <label for="showTextInputToggle">顯示文字輸入框:</label>
+                <label class="switch">
+                    <input type="checkbox" id="showTextInputToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-modal-group" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-top: 1px solid #eee;">
+                <label for="showSecondsToggle">數字時鐘顯示秒數:</label>
+                <label class="switch">
+                    <input type="checkbox" id="showSecondsToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+
+            <div class="settings-modal-group" style="border-top: 1px solid #eee; padding-top: 1.5rem;">
+                <label for="quoteInterval">時間語錄每隔多久轉換 (秒):</label>
+                <input type="number" id="quoteInterval" value="30" min="10">
+            </div>
+
+            <div class="settings-modal-group">
+                <label for="clockOuterColor">時鐘外框顏色:</label>
+                <input type="color" id="clockOuterColor" value="#4E342E">
+            </div>
+
+            <div class="settings-modal-group">
+                <label for="numberFontFamily">鐘面數字字型:</label>
+                <select id="numberFontFamily">
+                    <option value="Inter, sans-serif">Inter (正經)</option>
+                    <option value="Playfair Display, serif">Playfair Display (藝術)</option>
+                    <option value="Noto Sans TC, sans-serif">思源黑體 (繁體)</option>
+                    <option value="Merriweather, serif">Merriweather (襯線)</option>
+                    <option value="Lora, serif">Lora (襯線)</option> 
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
+                    <option value="Times New Roman, serif">Times New Roman</option>
+                </select>
+            </div>
+
+            <div class="settings-modal-group">
+                <label for="numberFontSize">鐘面數字字體大小 (px):</label>
+                <input type="number" id="numberFontSize" value="35" min="10" max="50">
+            </div>
+
+            <div class="settings-modal-group">
+                <label for="clockFaceImageSelect">鐘面背景圖案:</label>
+                <select id="clockFaceImageSelect">
+                    <option value="">無</option>
+                    <option value="xiaocaodi">小草地</option>
+                    <option value="xiaoyuanwaimao">校園外貌</option>
+                    <option value="biyeshijianlang">畢業時間廊</option>
+                    <option value="zhihuiquan">智慧泉</option>
+                </select>
+            </div>
+
+            <div class="settings-modal-group">
+                <label for="hourHandThickness">時針粗幼度 (px):</label>
+                <input type="number" id="hourHandThickness" value="7" min="1" max="10">
+            </div>
+
+            <div class="settings-modal-group">
+                <label for="minuteHandThickness">分針粗幼度 (px):</label>
+                <input type="number" id="minuteHandThickness" value="5" min="1" max="10">
+            </div>
+
+            <div class="settings-modal-group">
+                <label for="secondHandThickness">秒針粗幼度 (px):</label>
+                <input type="number" id="secondHandThickness" value="3" min="1" max="10">
+            </div>
+
+            <div class="settings-modal-actions">
+                <button class="reset-btn" id="resetSettingsBtn">還原預設</button>
+                <button class="cancel-btn" id="cancelSettingsBtn">取消</button>
+                <button class="apply-btn" id="applySettingsBtn">確定</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Clock Mode Variables ---
+        const hourHand = document.getElementById('hourHand');
+        const minuteHand = document.getElementById('minuteHand');
+        const secondHand = document.getElementById('secondHand');
+        const digitalTime = document.getElementById('digitalTime');
+        const digitalDate = document.getElementById('digitalDate');
+        const hourMarksContainer = document.getElementById('hourMarksContainer');
+        const minuteMarksContainer = document.getElementById('minuteMarksContainer');
+        const timeQuoteDisplay = document.getElementById('timeQuoteDisplay');
+        const quoteSource = document.getElementById('quoteSource');
+        const clockFaceImageDiv = document.getElementById('clockFaceImage');
+
+        // --- Settings Variables ---
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModalOverlay = document.getElementById('settingsModalOverlay');
+        const settingsModalContent = settingsModalOverlay.querySelector('.settings-modal-content');
+        const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+        const applySettingsBtn = document.getElementById('applySettingsBtn');
+        const resetSettingsBtn = document.getElementById('resetSettingsBtn');
+        const showQuoteToggle = document.getElementById('showQuoteToggle'); 
+        const showTimerToggle = document.getElementById('showTimerToggle'); 
+        const showTextInputToggle = document.getElementById('showTextInputToggle'); 
+        const showSecondsToggle = document.getElementById('showSecondsToggle'); 
+        const darkModeToggle = document.getElementById('darkModeToggle'); // NEW
+
+        // --- Settings Input Variables ---
+        const quoteIntervalInput = document.getElementById('quoteInterval');
+        const clockOuterColorInput = document.getElementById('clockOuterColor');
+        const numberFontFamilySelect = document.getElementById('numberFontFamily');
+        const numberFontSizeInput = document.getElementById('numberFontSize');
+        const clockFaceImageSelect = document.getElementById('clockFaceImageSelect');
+        const hourHandThicknessInput = document.getElementById('hourHandThickness');
+        const minuteHandThicknessInput = document.getElementById('minuteHandThickness');
+        const secondHandThicknessInput = document.getElementById('secondHandThickness');
+
+        // --- Global State for Settings ---
+        let currentShowSeconds = true;
+
+        // --- Alarm Variables ---
+        const alarmBtn = document.getElementById('alarmBtn');
+        const alarmModalOverlay = document.getElementById('alarmModalOverlay');
+        const alarmListContainer = document.getElementById('alarmListContainer'); 
+        const cancelAlarmBtn = document.getElementById('cancelAlarmBtn');
+        const applyAlarmBtn = document.getElementById('applyAlarmBtn');
+        const clearAlarmBtn = document.getElementById('clearAlarmBtn'); 
+        const alarmSound = document.getElementById('alarmSound');
+        
+        let alarmCheckInterval; 
+        const MAX_ALARMS = 10; 
+        let alarmInputs = []; 
+
+        let quoteIntervalTimer; 
+
+        // --- Timer Variables ---
+        const timerContainer = document.getElementById('timerContainer');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerMinutesInput = document.getElementById('timerMinutesInput');
+        const timerSecondsInput = document.getElementById('timerSecondsInput');
+        const timerStartBtn = document.getElementById('timerStartBtn');
+        const timerPauseBtn = document.getElementById('timerPauseBtn');
+        const timerResetBtn = document.getElementById('timerResetBtn');
+        const timerStatus = document.getElementById('timerStatus');
+        const timerProgressRing = document.getElementById('timerProgressRing');
+        const presetBtns = document.querySelectorAll('.preset-btn'); // NEW: Preset buttons
+        
+        let timerInterval = null;
+        let totalSecondsRemaining = 0;
+        let initialTotalSeconds = 0; 
+        let isTimerRunning = false;
+        let butterflyInterval = null;
+        
+        // --- Text Input Variables ---
+        const textInputContainer = document.getElementById('textInputContainer');
+        const mainTextInput = document.getElementById('mainTextInput');
+
+        // --- Fullscreen Button Variable ---
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+        // --- NEW: White Noise Variables ---
+        const whiteNoiseBtn = document.getElementById('whiteNoiseBtn');
+        const whiteNoiseSound = document.getElementById('whiteNoiseSound');
+        let isWhiteNoisePlaying = false;
+
+
+        // 鐘面背景圖案 URL 映射
+        const clockFaceImages = {
+            'xiaocaodi': 'https://i.imgur.com/4IglaiY.jpeg',
+            'xiaoyuanwaimao': 'https://i.imgur.com/BTst6oG.jpeg',
+            'biyeshijianlang': 'https://i.imgur.com/oVVvmib.jpeg',
+            'zhihuiquan': 'https://i.imgur.com/0BaoVsy.jpeg'
+        };
+
+
+        // 時間語錄陣列 (省略部分，保持原樣)
+        const timeQuotes = ["時間從不等人，把握當下，活在當下。", "時間是最好的老師，也是最嚴厲的考官。", "過去已逝，未來未至，唯有現在是真實的禮物。", "每一秒都是新的開始，每一刻都是新的機會。"];
+
+        // Function to dynamically create hour and minute marks
+        function createClockMarks() {
+            hourMarksContainer.innerHTML = '';
+            minuteMarksContainer.innerHTML = '';
+            for (let i = 0; i < 12; i++) {
+                const hourMarkContainer = document.createElement('div');
+                hourMarkContainer.className = 'hour-mark-container';
+                hourMarkContainer.style.transform = `rotate(${i * 30}deg)`; 
+                const hourMarkLine = document.createElement('div');
+                hourMarkLine.className = 'hour-mark-line';
+                hourMarkContainer.appendChild(hourMarkLine);
+                hourMarksContainer.appendChild(hourMarkContainer);
+            }
+            for (let i = 0; i < 60; i++) {
+                const minuteMarkContainer = document.createElement('div');
+                minuteMarkContainer.className = 'minute-mark-container';
+                minuteMarkContainer.style.transform = `rotate(${i * 6}deg)`; 
+                const minuteMarkLine = document.createElement('div');
+                minuteMarkLine.className = 'minute-mark-line';
+                minuteMarkContainer.appendChild(minuteMarkLine);
+                minuteMarksContainer.appendChild(minuteMarkContainer);
+            }
+        }
+
+
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const milliseconds = now.getMilliseconds(); 
+
+            const hourDeg = (hours % 12) * 30 + (minutes / 60) * 30 + (seconds / 3600) * 30; 
+            hourHand.style.transform = `translate(-50%, 0%) rotate(${hourDeg}deg)`;
+
+            const minuteDeg = minutes * 6 + (seconds / 60) * 6;
+            minuteHand.style.transform = `translate(-50%, 0%) rotate(${minuteDeg}deg)`;
+
+            const secondDeg = (seconds + milliseconds / 1000) * 6;
+            secondHand.style.transform = `translate(-50%, 0%) rotate(${secondDeg}deg)`;
+
+            let formattedTime;
+            if (currentShowSeconds) {
+                formattedTime = now.toLocaleTimeString('zh-Hant', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            } else {
+                formattedTime = now.toLocaleTimeString('zh-Hant', { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
+            
+            const formattedDate = now.toLocaleDateString('zh-Hant', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+            digitalTime.textContent = formattedTime;
+            digitalDate.textContent = formattedDate;
+        }
+
+        function displayRandomPredefinedQuote() {
+            const randomIndex = Math.floor(Math.random() * timeQuotes.length);
+            timeQuoteDisplay.textContent = timeQuotes[randomIndex];
+        }
+
+        function switchQuoteWithFade() {
+            timeQuoteDisplay.classList.add('fade-out'); 
+            setTimeout(() => {
+                displayRandomPredefinedQuote(); 
+                timeQuoteDisplay.classList.remove('fade-out'); 
+            }, 800); 
+        }
+
+        function updateQuoteVisibility(show) {
+            if (show) {
+                document.body.classList.remove('quote-hidden');
+                // If quote shown and user had enabled white noise, try resuming?
+                // For simplicity, let user toggle it on again.
+                // Or if we want to persist state:
+                // if (isWhiteNoisePlaying) whiteNoiseSound.play();
+            } else {
+                document.body.classList.add('quote-hidden');
+                // If quote hidden, pause white noise
+                if (isWhiteNoisePlaying) {
+                    whiteNoiseSound.pause();
+                    // We keep isWhiteNoisePlaying = true so we know to resume?
+                    // Or better, just stop it and update icon
+                    // Let's toggle it off for clarity
+                    toggleWhiteNoise(false);
+                }
+            }
+        }
+
+        function updateTimerVisibility(show) {
+            if (show) {
+                document.body.classList.add('timer-active');
+            } else {
+                document.body.classList.remove('timer-active');
+            }
+        }
+        
+        function updateTextInputVisibility(show) {
+            if (show) {
+                document.body.classList.add('text-active');
+            } else {
+                document.body.classList.remove('text-active');
+            }
+        }
+
+        function updateDarkMode(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        }
+        
+        function createButterfly() {
+            const butterfly = document.createElement('div');
+            butterfly.classList.add('butterfly');
+            butterfly.innerHTML = '<span class="butterfly-inner">🦋</span>'; // Use span for wing animation
+
+            // Randomize start position (bottom or sides)
+            const startX = Math.random() * window.innerWidth;
+            const startY = window.innerHeight + 50; // Start slightly below viewport
+
+            // Randomize destination (top area)
+            const endX = Math.random() * window.innerWidth;
+            const endY = -100; // End above viewport
+
+            // Randomize size and duration
+            const size = 0.5 + Math.random() * 0.8; // 0.5x to 1.3x scale
+            const duration = 10 + Math.random() * 10; // 10s to 20s flight time
+            
+            // NEW: Randomize Color (Hue Rotation)
+            // 0deg is original blue, rotating it gives all other colors
+            const hue = Math.floor(Math.random() * 360);
+
+            butterfly.style.left = `${startX}px`;
+            butterfly.style.top = `${startY}px`;
+            butterfly.style.transform = `scale(${size})`;
+            // Apply random color filter
+            butterfly.style.filter = `hue-rotate(${hue}deg)`;
+            butterfly.style.transition = `top ${duration}s linear, left ${duration}s ease-in-out, opacity ${duration}s`; // Smooth movement
+
+            document.body.appendChild(butterfly);
+
+            // Trigger animation in next frame
+            requestAnimationFrame(() => {
+                butterfly.style.top = `${endY}px`;
+                butterfly.style.left = `${endX}px`;
+            });
+
+            // Remove after animation
+            setTimeout(() => {
+                butterfly.remove();
+            }, duration * 1000);
+        }
+
+        function startButterflies() {
+            if (!butterflyInterval) {
+                // Create one immediately
+                createButterfly();
+                // Then create periodically
+                butterflyInterval = setInterval(createButterfly, 3000); // New butterfly every 3 seconds
+            }
+        }
+
+        function stopButterflies() {
+            if (butterflyInterval) {
+                clearInterval(butterflyInterval);
+                butterflyInterval = null;
+            }
+            // Optional: clear existing butterflies immediately
+            document.querySelectorAll('.butterfly').forEach(el => el.remove());
+        }
+
+
+        // --- NEW: White Noise (Light Music) Logic ---
+        function toggleWhiteNoise(forceState = null) {
+            // Determine new state
+            const newState = forceState !== null ? forceState : !isWhiteNoisePlaying;
+            
+            if (newState) {
+                // Play
+                whiteNoiseSound.play().then(() => {
+                    isWhiteNoisePlaying = true;
+                    whiteNoiseBtn.classList.add('active');
+                    startButterflies(); // Start animation
+                    // Update Icon to 'Music On'
+                    whiteNoiseBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>`;
+                }).catch(err => {
+                    console.warn("輕音樂播放失敗:", err);
+                    // Fallback logic handled by button click usually
+                });
+            } else {
+                // Pause
+                whiteNoiseSound.pause();
+                isWhiteNoisePlaying = false;
+                whiteNoiseBtn.classList.remove('active');
+                stopButterflies(); // Stop animation
+                // Update Icon to 'Music Off'
+                 whiteNoiseBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                            <line x1="2" y1="2" x2="22" y2="22"></line>
+                        </svg>`;
+            }
+        }
+
+
+        // --- Settings Modal Functions ---
+        function openSettingsModal() {
+            showQuoteToggle.checked = localStorage.getItem('showQuote') === 'true'; 
+            showTimerToggle.checked = localStorage.getItem('showTimer') === 'true'; 
+            showTextInputToggle.checked = localStorage.getItem('showTextInput') === 'true'; 
+            showSecondsToggle.checked = localStorage.getItem('showSeconds') !== 'false'; 
+            darkModeToggle.checked = localStorage.getItem('darkMode') === 'true'; // NEW
+
+            quoteIntervalInput.value = parseInt(localStorage.getItem('quoteInterval') || '30'); 
+            clockOuterColorInput.value = localStorage.getItem('clockOuterColor') || '#4E342E';
+            numberFontFamilySelect.value = localStorage.getItem('numberFontFamily') || 'Lora, serif';
+            numberFontSizeInput.value = parseInt(localStorage.getItem('numberFontSize') || '35'); 
+            clockFaceImageSelect.value = localStorage.getItem('clockFaceImage') || ''; 
+            hourHandThicknessInput.value = parseInt(localStorage.getItem('hourHandThickness') || '7'); 
+            minuteHandThicknessInput.value = parseInt(localStorage.getItem('minuteHandThickness') || '5'); 
+            secondHandThicknessInput.value = parseInt(localStorage.getItem('secondHandThickness') || '3'); 
+
+            settingsModalOverlay.classList.add('active');
+        }
+
+        function closeSettingsModal() {
+            settingsModalOverlay.classList.remove('active');
+        }
+        
+        // --- Alarm Modal Functions ---
+        function getSavedAlarms() {
+            const saved = localStorage.getItem('alarmTimes');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length === MAX_ALARMS) {
+                        return parsed;
+                    }
+                } catch (e) {
+                    console.error("無法解析已儲存的響鬧:", e);
+                }
+            }
+            return new Array(MAX_ALARMS).fill('');
+        }
+
+        function saveAlarms(alarms) {
+            localStorage.setItem('alarmTimes', JSON.stringify(alarms));
+            updateAlarmIcon();
+        }
+
+        function createAlarmInputs() {
+            alarmListContainer.innerHTML = ''; 
+            alarmInputs = []; 
+            const savedAlarms = getSavedAlarms();
+
+            for (let i = 0; i < MAX_ALARMS; i++) {
+                const entry = document.createElement('div');
+                entry.className = 'alarm-entry';
+
+                const label = document.createElement('label');
+                label.setAttribute('for', `alarmTime${i}`);
+                label.textContent = `第 ${i + 1} 次響鬧時間:`;
+
+                const input = document.createElement('input');
+                input.type = 'time';
+                input.id = `alarmTime${i}`;
+                input.className = 'alarm-time-input';
+                input.value = savedAlarms[i] || '';
+
+                entry.appendChild(label);
+                entry.appendChild(input);
+                alarmListContainer.appendChild(entry);
+                alarmInputs.push(input); 
+            }
+        }
+
+
+        function openAlarmModal() {
+            const savedAlarms = getSavedAlarms();
+            alarmInputs.forEach((input, i) => {
+                input.value = savedAlarms[i] || '';
+            });
+            alarmModalOverlay.classList.add('active');
+        }
+
+        function closeAlarmModal() {
+            alarmModalOverlay.classList.remove('active');
+        }
+
+        function applyAlarmSettings() {
+            const newAlarms = alarmInputs.map(input => input.value);
+            saveAlarms(newAlarms);
+            closeAlarmModal();
+        }
+
+        function clearAlarmSettings() {
+            alarmInputs.forEach(input => input.value = '');
+            saveAlarms(new Array(MAX_ALARMS).fill(''));
+        }
+
+        // --- Audio Priming Function ---
+        let isAudioPrimed = false;
+        function primeAudio() {
+            if (isAudioPrimed) return;
+            const playPromise = alarmSound.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    alarmSound.pause();
+                    alarmSound.currentTime = 0;
+                    isAudioPrimed = true;
+                    console.log("音訊已準備就緒。");
+                }).catch(error => {
+                    console.warn("音訊準備失敗 (可能是因為使用者尚未與頁面互動):", error);
+                    isAudioPrimed = true; 
+                });
+            } else {
+                 isAudioPrimed = true; 
+            }
+        }
+
+        // --- NEW: Notification Logic ---
+        function showNotification(playSound = true) {
+            // Visual Alert
+            document.body.classList.add('visual-alert');
+            setTimeout(() => {
+                document.body.classList.remove('visual-alert');
+            }, 10000); // 10 seconds
+
+            if (playSound) {
+                // Audio
+                primeAudio(); 
+                alarmSound.loop = false; // No loop
+                alarmSound.play().catch(e => console.error("播放響鬧失敗:", e));
+            }
+        }
+
+
+        // --- Alarm Check Function ---
+        function checkAlarm() {
+            const now = new Date();
+            const currentTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+            const savedAlarms = getSavedAlarms();
+            let alarmsChanged = false;
+
+            savedAlarms.forEach((alarmTime, index) => {
+                if (alarmTime && currentTime === alarmTime) {
+                    console.log(`第 ${index + 1} 次響鬧觸發！`);
+                    showNotification(true); // Trigger Notification with sound
+                    
+                    savedAlarms[index] = '';
+                    alarmsChanged = true;
+                }
+            });
+
+            if (alarmsChanged) {
+                saveAlarms(savedAlarms);
+                alarmInputs.forEach((input, i) => {
+                    input.value = savedAlarms[i] || '';
+                });
+            }
+        }
+
+        // --- Update Alarm Icon Function ---
+        function updateAlarmIcon() {
+            const savedAlarms = getSavedAlarms();
+            const isAnyAlarmSet = savedAlarms.some(time => time && time !== '');
+            
+            if (isAnyAlarmSet) {
+                alarmBtn.textContent = '⏰';
+            } else {
+                alarmBtn.textContent = '🔕';
+            }
+        }
+
+
+        // --- Apply Settings Function ---
+        function applySettings() {
+            const isShowQuote = showQuoteToggle.checked;
+            const isShowTimer = showTimerToggle.checked; 
+            const isShowTextInput = showTextInputToggle.checked; 
+            const isShowSeconds = showSecondsToggle.checked; 
+            const isDarkMode = darkModeToggle.checked; // NEW
+
+            const newQuoteInterval = parseInt(quoteIntervalInput.value);
+            const newClockOuterColor = clockOuterColorInput.value;
+            const newNumberFontFamily = numberFontFamilySelect.value;
+            const newNumberFontSize = parseInt(numberFontSizeInput.value);
+            const newClockFaceImageKey = clockFaceImageSelect.value; 
+            const newHourHandThickness = parseInt(hourHandThicknessInput.value);
+            const newMinuteHandThickness = parseInt(minuteHandThicknessInput.value);
+            const newSecondHandThickness = parseInt(secondHandThicknessInput.value);
+
+            if (isNaN(newQuoteInterval) || newQuoteInterval < 10) {
+                console.warn('時間語錄轉換間隔必須是至少10秒的數字！');
+                return;
+            }
+
+            localStorage.setItem('showQuote', isShowQuote);
+            updateQuoteVisibility(isShowQuote);
+
+            localStorage.setItem('showTimer', isShowTimer); 
+            updateTimerVisibility(isShowTimer); 
+
+            localStorage.setItem('showTextInput', isShowTextInput); 
+            updateTextInputVisibility(isShowTextInput); 
+            
+            localStorage.setItem('showSeconds', isShowSeconds); 
+            currentShowSeconds = isShowSeconds; 
+
+            localStorage.setItem('darkMode', isDarkMode); // NEW
+            updateDarkMode(isDarkMode); // NEW
+
+            clearInterval(quoteIntervalTimer); 
+            quoteIntervalTimer = setInterval(switchQuoteWithFade, newQuoteInterval * 1000);
+            localStorage.setItem('quoteInterval', newQuoteInterval);
+
+            document.documentElement.style.setProperty('--clock-outer-color', newClockOuterColor);
+            localStorage.setItem('clockOuterColor', newClockOuterColor);
+
+            document.documentElement.style.setProperty('--number-font-family', newNumberFontFamily);
+            document.documentElement.style.setProperty('--number-font-size', `${newNumberFontSize}px`);
+            localStorage.setItem('numberFontFamily', newNumberFontFamily);
+            localStorage.setItem('numberFontSize', newNumberFontSize);
+
+            const imageUrl = clockFaceImages[newClockFaceImageKey] || ''; 
+            clockFaceImageDiv.style.backgroundImage = imageUrl ? `url('${imageUrl}')` : 'none';
+            localStorage.setItem('clockFaceImage', newClockFaceImageKey); 
+
+            document.documentElement.style.setProperty('--hour-hand-width', `${newHourHandThickness}px`);
+            document.documentElement.style.setProperty('--minute-hand-width', `${newMinuteHandThickness}px`);
+            document.documentElement.style.setProperty('--second-hand-width', `${newSecondHandThickness}px`);
+            localStorage.setItem('hourHandThickness', newHourHandThickness);
+            localStorage.setItem('minuteHandThickness', newMinuteHandThickness);
+            localStorage.setItem('secondHandThickness', newSecondHandThickness);
+
+            closeSettingsModal();
+        }
+
+        // --- Load Settings Function ---
+        function loadSettings() {
+            const savedShowQuote = localStorage.getItem('showQuote') === 'true'; 
+            updateQuoteVisibility(savedShowQuote);
+            
+            const savedShowTimer = localStorage.getItem('showTimer') === 'true'; 
+            updateTimerVisibility(savedShowTimer); 
+            
+            const savedShowTextInput = localStorage.getItem('showTextInput') === 'true'; 
+            updateTextInputVisibility(savedShowTextInput); 
+            
+            const savedShowSeconds = localStorage.getItem('showSeconds') !== 'false'; 
+            currentShowSeconds = savedShowSeconds;
+
+            const savedDarkMode = localStorage.getItem('darkMode') === 'true'; // NEW
+            updateDarkMode(savedDarkMode); // NEW
+
+            // Load saved text
+            const savedText = localStorage.getItem('memoText');
+            if (savedText) {
+                mainTextInput.value = savedText;
+            }
+
+            const savedQuoteInterval = parseInt(localStorage.getItem('quoteInterval') || '30'); 
+            const savedClockOuterColor = localStorage.getItem('clockOuterColor') || '#4E342E';
+            const savedNumberFontFamily = localStorage.getItem('numberFontFamily') || 'Lora, serif';
+            const savedNumberFontSize = parseInt(localStorage.getItem('numberFontSize') || '35'); 
+            const savedClockFaceImageKey = localStorage.getItem('clockFaceImage') || '';
+            const savedHourHandThickness = parseInt(localStorage.getItem('hourHandThickness') || '7'); 
+            const savedMinuteHandThickness = parseInt(localStorage.getItem('minuteHandThickness') || '5'); 
+            const savedSecondHandThickness = parseInt(localStorage.getItem('secondHandThickness') || '3'); 
+
+            document.documentElement.style.setProperty('--clock-outer-color', savedClockOuterColor);
+            document.documentElement.style.setProperty('--number-font-family', savedNumberFontFamily);
+            document.documentElement.style.setProperty('--number-font-size', `${savedNumberFontSize}px`);
+            
+            const imageUrl = clockFaceImages[savedClockFaceImageKey] || '';
+            clockFaceImageDiv.style.backgroundImage = imageUrl ? `url('${imageUrl}')` : 'none';
+
+            document.documentElement.style.setProperty('--hour-hand-width', `${savedHourHandThickness}px`);
+            document.documentElement.style.setProperty('--minute-hand-width', `${savedMinuteHandThickness}px`);
+            document.documentElement.style.setProperty('--second-hand-width', `${savedSecondHandThickness}px`);
+
+            quoteIntervalTimer = setInterval(switchQuoteWithFade, savedQuoteInterval * 1000);
+        }
+
+        // --- Reset Settings Function ---
+        function resetSettings() {
+            localStorage.removeItem('quoteInterval');
+            localStorage.removeItem('clockOuterColor');
+            localStorage.removeItem('numberFontFamily');
+            localStorage.removeItem('numberFontSize');
+            localStorage.removeItem('clockFaceImage');
+            localStorage.removeItem('hourHandThickness');
+            localStorage.removeItem('minuteHandThickness');
+            localStorage.removeItem('secondHandThickness');
+            localStorage.removeItem('showQuote'); 
+            localStorage.removeItem('showTimer'); 
+            localStorage.removeItem('showTextInput'); 
+            localStorage.removeItem('showSeconds'); 
+            localStorage.removeItem('darkMode'); // NEW
+            localStorage.removeItem('alarmTimes'); 
+            // Note: Not clearing 'memoText' on reset settings, as it's content, not setting.
+            updateAlarmIcon(); 
+
+            showQuoteToggle.checked = false; 
+            showTimerToggle.checked = false; 
+            showTextInputToggle.checked = false; 
+            showSecondsToggle.checked = true; 
+            darkModeToggle.checked = false; // NEW
+
+            quoteIntervalInput.value = 30; 
+            clockOuterColorInput.value = '#4E342E';
+            numberFontFamilySelect.value = 'Lora, serif';
+            numberFontSizeInput.value = 35; 
+            clockFaceImageSelect.value = ''; 
+            hourHandThicknessInput.value = 7; 
+            minuteHandThicknessInput.value = 5; 
+            secondHandThicknessInput.value = 3; 
+
+            applySettings();
+            closeSettingsModal(); 
+        }
+
+        // --- Timer Logic Functions ---
+        function startTimer() {
+            if (isTimerRunning) return; 
+
+            if (totalSecondsRemaining <= 0) {
+                const minutes = parseInt(timerMinutesInput.value) || 0;
+                const seconds = parseInt(timerSecondsInput.value) || 0;
+                totalSecondsRemaining = (minutes * 60) + seconds;
+                initialTotalSeconds = totalSecondsRemaining; 
+            }
+            
+            if (totalSecondsRemaining > 0) {
+                if (initialTotalSeconds <= 0) initialTotalSeconds = totalSecondsRemaining; 
+                
+                isTimerRunning = true;
+                timerStatus.textContent = "RUNNING";
+                timerStatus.style.color = "#4a90e2";
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerStatus.textContent = "PAUSED";
+            timerStatus.style.color = "#718096";
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            const minutes = parseInt(timerMinutesInput.value) || 0;
+            const seconds = parseInt(timerSecondsInput.value) || 0;
+            totalSecondsRemaining = (minutes * 60) + seconds;
+            initialTotalSeconds = totalSecondsRemaining;
+            
+            updateTimerDisplay(totalSecondsRemaining);
+            timerStatus.textContent = "READY";
+            timerStatus.style.color = "#718096";
+            
+            timerProgressRing.style.strokeDashoffset = 0;
+        }
+
+        function updateTimer() {
+            if (totalSecondsRemaining <= 0) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                // MODIFIED: Trigger visual notification, but NO SOUND (false)
+                showNotification(false); 
+                updateTimerDisplay(0);
+                timerStatus.textContent = "FINISHED";
+                timerStatus.style.color = "#e53e3e";
+                return;
+            }
+            totalSecondsRemaining--;
+            updateTimerDisplay(totalSecondsRemaining);
+            
+            if (initialTotalSeconds > 0) {
+                const circumference = 679; 
+                const offset = circumference * (1 - (totalSecondsRemaining / initialTotalSeconds));
+                timerProgressRing.style.strokeDashoffset = offset;
+            }
+        }
+
+        function updateTimerDisplay(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+
+        // --- Initial Setup (DOMContentLoaded) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            createClockMarks(); 
+            setInterval(updateClock, 1000 / 60); 
+            updateClock(); 
+
+            loadSettings(); 
+            displayRandomPredefinedQuote(); 
+            createAlarmInputs(); 
+
+            // Event Listeners
+            settingsBtn.addEventListener('click', () => { primeAudio(); openSettingsModal(); });
+            cancelSettingsBtn.addEventListener('click', closeSettingsModal);
+            applySettingsBtn.addEventListener('click', applySettings);
+            resetSettingsBtn.addEventListener('click', resetSettings); 
+
+            alarmBtn.addEventListener('click', () => { primeAudio(); openAlarmModal(); });
+            cancelAlarmBtn.addEventListener('click', closeAlarmModal);
+            applyAlarmBtn.addEventListener('click', () => { primeAudio(); applyAlarmSettings(); });
+            clearAlarmBtn.addEventListener('click', () => { primeAudio(); clearAlarmSettings(); });
+            
+            // White Noise Listener
+            whiteNoiseBtn.addEventListener('click', () => {
+                toggleWhiteNoise();
+            });
+
+            timerStartBtn.addEventListener('click', () => { primeAudio(); startTimer(); });
+            timerPauseBtn.addEventListener('click', pauseTimer);
+            timerResetBtn.addEventListener('click', resetTimer);
+
+            fullscreenBtn.addEventListener('click', () => {
+                primeAudio(); 
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => console.warn(`啟用全螢幕失敗: ${err.message}`));
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                }
+            });
+            
+            document.addEventListener('fullscreenchange', () => {
+                 const isFullscreen = document.fullscreenElement;
+                 if (isFullscreen) {
+                    fullscreenBtn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>`;
+                 } else {
+                    fullscreenBtn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
+                 }
+            });
+            
+            // NEW: Auto-save Text Input
+            mainTextInput.addEventListener('input', (e) => {
+                localStorage.setItem('memoText', e.target.value);
+            });
+
+            // NEW: Pomodoro Presets
+            presetBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const timeStr = btn.dataset.time;
+                    const [mins, secs] = timeStr.split(':').map(Number);
+                    
+                    timerMinutesInput.value = mins;
+                    timerSecondsInput.value = secs;
+                    
+                    // Stop current timer and update display immediately
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    totalSecondsRemaining = (mins * 60) + secs;
+                    initialTotalSeconds = totalSecondsRemaining;
+                    updateTimerDisplay(totalSecondsRemaining);
+                    timerProgressRing.style.strokeDashoffset = 0;
+                    timerStatus.textContent = "READY";
+                    timerStatus.style.color = "#718096"; // Reset status color
+                });
+            });
+
+            settingsModalOverlay.addEventListener('click', (e) => { if (e.target === settingsModalOverlay) closeSettingsModal(); });
+            alarmModalOverlay.addEventListener('click', (e) => { if (e.target === alarmModalOverlay) closeAlarmModal(); });
+            
+            alarmCheckInterval = setInterval(checkAlarm, 1000);
+            updateAlarmIcon();
+            
+            // Ensure correct initial white noise icon state (muted by default)
+             whiteNoiseBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                            <line x1="2" y1="2" x2="22" y2="22"></line>
+                        </svg>`;
+
+        });
+
+    </script>
+</body>
+</html>
